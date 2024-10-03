@@ -71,22 +71,5 @@ for B_target = blocking_rates
     fprintf('\n');
 end
 %--------------------------------------------------------------
-% 繪製結果圖形
 % 將結果轉換為表格方便處理
 results_table = array2table(results, 'VariableNames', {'Channels', 'BlockingRate', 'TrafficLoad'});
-
-% 繪製圖形
-blocking_labels = {'1%', '3%', '5%', '10%'};
-for i = 1:length(blocking_rates)
-    B_target = blocking_rates(i);
-    idx = results(:,2) == B_target;
-    m_values = results(idx, 1);
-    rho_values = results(idx, 3);
-    
-    figure;
-    plot(m_values, rho_values, '-o', 'LineWidth', 2);
-    xlabel('channel number m');
-    ylabel('total traffic load \rho (Erlang)');
-    title(sprintf('阻塞概率 %.0f%% 下total traffic load與通道數量的關係', B_target * 100));
-    grid on;
-end
