@@ -15,7 +15,7 @@ function B = erlangB_blocking_probability(rho, m)
     end
 end
 %--------------------------------------------------------------
-% 函數：根據給定的阻塞概率計算total traffic load rho
+% 函數：根據給定的阻塞概率計算 total traffic load rho
 function rho = calculate_traffic_load(m, B_target)
     % 定義目標函數：阻塞概率差值
     fun = @(rho) erlangB_blocking_probability(rho, m) - B_target;
@@ -45,7 +45,7 @@ end
 % 定義通道數量和阻塞概率
 channels_small = 1:20;
 channels_large = 200:220;
-channels = [channels_small,channels_large];
+channels = [channels_small, channels_large];
 blocking_rates = [0.01, 0.03, 0.05, 0.10];
 
 % 預分配結果矩陣
@@ -54,17 +54,22 @@ results = [];
 % 遍歷阻塞概率
 for B_target = blocking_rates
     fprintf('阻塞概率：%.0f%%\n', B_target * 100);
-    fprintf('通道數\t total traffic load (Erlang)\n');
+    fprintf('通道數\t total traffic load \t actual traffic load \t spectral efficiency\n');
     % 遍歷通道數量
     for m = channels
         try
             rho = calculate_traffic_load(m, B_target);
-            fprintf('%d\t\t%.4f\n', m, rho);
+            % 計算阻塞概率 B
+            B = erlangB_blocking_probability(rho, m);
+            % 計算實際業務量 A = rho * (1 - B)
+            A = rho * (1 - B);
+            % 計算頻譜效率 eta = A / m
+            eta = A / m;
+            fprintf('%d\t\t\t%.4f\t\t\t\t\t\t%.4f\t\t\t\t\t%.4f\n', m, rho, A, eta);
             % 儲存結果
-            results = [results; m, B_target, rho];
+            results = [results; m, B_target, rho, A, eta];
         catch ME
             fprintf('%d\t\t計算失敗: %s\n', m, ME.message);
-            % 對於計算失敗的情況，可以繼續下一個 m
             continue;
         end
     end
@@ -72,4 +77,4 @@ for B_target = blocking_rates
 end
 %--------------------------------------------------------------
 % 將結果轉換為表格方便處理
-results_table = array2table(results, 'VariableNames', {'Channels', 'BlockingRate', 'TrafficLoad'});
+results_table = array2table(results, 'VariableNames', {'Channels', 'BlockingRate', 'TrafficLoad', 'ActualTrafficLoad', 'SpectralEfficiency'});
